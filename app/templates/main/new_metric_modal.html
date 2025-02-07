@@ -1,0 +1,166 @@
+<!-- New Metric Modal -->
+<div class="modal fade" id="newMetricModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ get_text('add_new_metric', current_user.language) }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('main.metrics') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="category" class="form-label">{{ get_text('category', current_user.language) }}</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">{{ get_text('select_category', current_user.language) }}</option>
+                                <option value="Health">{{ get_text('health', current_user.language) }}</option>
+                                <option value="Safety">{{ get_text('safety', current_user.language) }}</option>
+                                <option value="Quality">{{ get_text('quality', current_user.language) }}</option>
+                                <option value="Environment">{{ get_text('environment', current_user.language) }}</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="metric_type" class="form-label">{{ get_text('type', current_user.language) }}</label>
+                            <select class="form-select" id="metric_type" name="metric_type" required>
+                                <option value="">{{ get_text('select_type', current_user.language) }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="value" class="form-label">{{ get_text('value', current_user.language) }}</label>
+                            <input type="number" step="0.01" class="form-control" id="value" name="value" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="unit" class="form-label">{{ get_text('unit', current_user.language) }}</label>
+                            <input type="text" class="form-control" id="unit" name="unit" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="target" class="form-label">{{ get_text('target_optional', current_user.language) }}</label>
+                        <input type="number" step="0.01" class="form-control" id="target" name="target">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">{{ get_text('notes', current_user.language) }}</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        {{ get_text('cancel', current_user.language) }}
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        {{ get_text('save', current_user.language) }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const metricTypes = {
+    'Health': {
+        'Lost Time Injury Rate': 'Incidents per million hours worked',
+        'Sick Leave Rate': 'Percentage',
+        'Health Check Compliance': 'Percentage',
+        'Ergonomic Assessment Score': 'Score out of 100',
+        'Workplace Satisfaction': 'Score out of 10'
+    },
+    'Safety': {
+        'Near Miss Reports': 'Count per month',
+        'Safety Training Completion': 'Percentage',
+        'PPE Compliance Rate': 'Percentage',
+        'Risk Assessment Coverage': 'Percentage',
+        'Emergency Response Time': 'Minutes'
+    },
+    'Quality': {
+        'First Pass Yield': 'Percentage',
+        'Customer Satisfaction': 'Score out of 10',
+        'Defect Rate': 'Parts per million',
+        'On-Time Delivery': 'Percentage',
+        'Process Capability Index': 'Cp value'
+    },
+    'Environment': {
+        'Energy Consumption': 'kWh per unit',
+        'Water Usage': 'Cubic meters per day',
+        'Waste Recycling Rate': 'Percentage',
+        'Carbon Emissions': 'Tons CO2e per month',
+        'Environmental Incidents': 'Count per month'
+    }
+};
+
+document.getElementById('category').addEventListener('change', function() {
+    const typeSelect = document.getElementById('metric_type');
+    const unitInput = document.getElementById('unit');
+    typeSelect.innerHTML = `<option value="">${ "{{ get_text('select_type', current_user.language) }}" }</option>`;
+    unitInput.value = '';
+    
+    const category = this.value;
+    if (category && metricTypes[category]) {
+        Object.entries(metricTypes[category]).forEach(([type, unit]) => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            typeSelect.appendChild(option);
+        });
+    }
+});
+
+document.getElementById('metric_type').addEventListener('change', function() {
+    const category = document.getElementById('category').value;
+    const unitInput = document.getElementById('unit');
+    const targetInput = document.getElementById('target');
+    const metricType = this.value;
+    
+    if (category && metricType && metricTypes[category][metricType]) {
+        unitInput.value = metricTypes[category][metricType];
+        
+        // Set target based on metric type
+        if (metricType.includes('Rate') || metricType.includes('Incidents') || metricType.includes('Defect')) {
+            // For negative metrics (where lower is better)
+            targetInput.value = 0;
+        } else if (metricType.includes('Compliance') || metricType.includes('Coverage') || 
+                  metricType.includes('Completion') || metricType === 'PPE Compliance Rate') {
+            // For compliance metrics
+            targetInput.value = 100;
+        } else if (metricType.includes('Score') || metricType.includes('Satisfaction')) {
+            // For score-based metrics
+            if (unitInput.value.includes('100')) {
+                targetInput.value = 100;
+            } else if (unitInput.value.includes('10')) {
+                targetInput.value = 10;
+            }
+        } else if (metricType.includes('Consumption') || metricType.includes('Usage') || 
+                  metricType.includes('Emissions')) {
+            // For consumption metrics (where lower is better)
+            targetInput.value = 0;
+        } else if (metricType.includes('Yield') || metricType.includes('Recycling')) {
+            // For yield/recycling metrics (where higher is better)
+            targetInput.value = 100;
+        }
+    }
+});
+
+// Also update target when value changes
+document.getElementById('value').addEventListener('change', function() {
+    const metricType = document.getElementById('metric_type').value;
+    const targetInput = document.getElementById('target');
+    
+    if (!targetInput.value && metricType) {
+        if (metricType.includes('Rate') || metricType.includes('Incidents') || 
+            metricType.includes('Defect') || metricType.includes('Consumption') || 
+            metricType.includes('Usage') || metricType.includes('Emissions')) {
+            targetInput.value = 0;
+        } else if (metricType.includes('Compliance') || metricType.includes('Coverage') || 
+                  metricType.includes('Completion') || metricType === 'PPE Compliance Rate' ||
+                  metricType.includes('Yield') || metricType.includes('Recycling')) {
+            targetInput.value = 100;
+        }
+    }
+});
+</script>

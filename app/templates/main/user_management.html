@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+
+{% block title %}{{ get_text('user_management', current_user.language) }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>{{ get_text('user_management', current_user.language) }}</h2>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newUserModal">
+                <i class="fas fa-plus"></i> {{ get_text('add_user', current_user.language) }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="card shadow">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>{{ get_text('username', current_user.language) }}</th>
+                        <th>{{ get_text('email', current_user.language) }}</th>
+                        <th>{{ get_text('role', current_user.language) }}</th>
+                        <th>{{ get_text('permissions', current_user.language) }}</th>
+                        <th>{{ get_text('actions', current_user.language) }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.role }}</td>
+                        <td>
+                            <small>
+                                {% if user.can_add_incidents %}
+                                    <span class="badge bg-success">{{ get_text('add_incidents', current_user.language) }}</span>
+                                {% endif %}
+                                {% if user.can_view_incidents %}
+                                    <span class="badge bg-info">{{ get_text('view_incidents', current_user.language) }}</span>
+                                {% endif %}
+                                {% if user.can_add_metrics %}
+                                    <span class="badge bg-success">{{ get_text('add_metrics', current_user.language) }}</span>
+                                {% endif %}
+                                {% if user.can_view_metrics %}
+                                    <span class="badge bg-info">{{ get_text('view_metrics', current_user.language) }}</span>
+                                {% endif %}
+                                {% if user.can_export %}
+                                    <span class="badge bg-warning">{{ get_text('can_export', current_user.language) }}</span>
+                                {% endif %}
+                                {% if user.is_admin %}
+                                    <span class="badge bg-danger">{{ get_text('admin', current_user.language) }}</span>
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-warning" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#editUserModal{{ user.id }}"
+                                        title="{{ get_text('edit_user', current_user.language) }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                {% if user.id != current_user.id %}
+                                <button type="button" class="btn btn-sm btn-danger" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#deleteUserModal{{ user.id }}"
+                                        title="{{ get_text('delete_user', current_user.language) }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Edit User Modal -->
+                    <div class="modal fade" id="editUserModal{{ user.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">{{ get_text('edit_user', current_user.language) }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form method="POST" action="{{ url_for('main.edit_user', id=user.id) }}">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">{{ get_text('username', current_user.language) }}</label>
+                                            <input type="text" class="form-control" name="username" value="{{ user.username }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">{{ get_text('email', current_user.language) }}</label>
+                                            <input type="email" class="form-control" name="email" value="{{ user.email }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">{{ get_text('role', current_user.language) }}</label>
+                                            <select class="form-select" name="role" required>
+                                                <option value="incident_only" {% if user.role == 'incident_only' %}selected{% endif %}>
+                                                    {{ get_text('incident_only', current_user.language) }}
+                                                </option>
+                                                <option value="incident_view" {% if user.role == 'incident_view' %}selected{% endif %}>
+                                                    {{ get_text('incident_view', current_user.language) }}
+                                                </option>
+                                                <option value="metrics" {% if user.role == 'metrics' %}selected{% endif %}>
+                                                    {{ get_text('metrics', current_user.language) }}
+                                                </option>
+                                                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>
+                                                    {{ get_text('admin', current_user.language) }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">{{ get_text('custom_permissions', current_user.language) }}</label>
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" name="can_add_incidents" 
+                                                       {% if user.can_add_incidents %}checked{% endif %}>
+                                                <label class="form-check-label">{{ get_text('can_add_incidents', current_user.language) }}</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" name="can_view_incidents"
+                                                       {% if user.can_view_incidents %}checked{% endif %}>
+                                                <label class="form-check-label">{{ get_text('can_view_incidents', current_user.language) }}</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" name="can_add_metrics"
+                                                       {% if user.can_add_metrics %}checked{% endif %}>
+                                                <label class="form-check-label">{{ get_text('can_add_metrics', current_user.language) }}</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" name="can_view_metrics"
+                                                       {% if user.can_view_metrics %}checked{% endif %}>
+                                                <label class="form-check-label">{{ get_text('can_view_metrics', current_user.language) }}</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" name="can_export"
+                                                       {% if user.can_export %}checked{% endif %}>
+                                                <label class="form-check-label">{{ get_text('can_export', current_user.language) }}</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" name="is_admin"
+                                                       {% if user.is_admin %}checked{% endif %}>
+                                                <label class="form-check-label">{{ get_text('is_admin', current_user.language) }}</label>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">{{ get_text('new_password_optional', current_user.language) }}</label>
+                                            <input type="password" class="form-control" name="password">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                            {{ get_text('cancel', current_user.language) }}
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            {{ get_text('save', current_user.language) }}
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Delete User Modal -->
+                    <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">{{ get_text('delete_user', current_user.language) }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>{{ get_text('delete_user_confirm', current_user.language) }} <strong>{{ user.username }}</strong>?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                        {{ get_text('cancel', current_user.language) }}
+                                    </button>
+                                    <form method="POST" action="{{ url_for('main.delete_user', id=user.id) }}" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-danger">
+                                            {{ get_text('delete', current_user.language) }}
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- New User Modal -->
+<div class="modal fade" id="newUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ get_text('add_user', current_user.language) }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('main.add_user') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">{{ get_text('username', current_user.language) }}</label>
+                        <input type="text" class="form-control" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ get_text('email', current_user.language) }}</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ get_text('password', current_user.language) }}</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ get_text('role', current_user.language) }}</label>
+                        <select class="form-select" name="role" required>
+                            <option value="incident_only">{{ get_text('incident_only', current_user.language) }}</option>
+                            <option value="incident_view">{{ get_text('incident_view', current_user.language) }}</option>
+                            <option value="metrics">{{ get_text('metrics', current_user.language) }}</option>
+                            <option value="admin">{{ get_text('admin', current_user.language) }}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ get_text('custom_permissions', current_user.language) }}</label>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="can_add_incidents">
+                            <label class="form-check-label">{{ get_text('can_add_incidents', current_user.language) }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="can_view_incidents">
+                            <label class="form-check-label">{{ get_text('can_view_incidents', current_user.language) }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="can_add_metrics">
+                            <label class="form-check-label">{{ get_text('can_add_metrics', current_user.language) }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="can_view_metrics">
+                            <label class="form-check-label">{{ get_text('can_view_metrics', current_user.language) }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="can_export">
+                            <label class="form-check-label">{{ get_text('can_export', current_user.language) }}</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" name="is_admin">
+                            <label class="form-check-label">{{ get_text('is_admin', current_user.language) }}</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        {{ get_text('cancel', current_user.language) }}
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        {{ get_text('add', current_user.language) }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('select[name="role"]').forEach(select => {
+    select.addEventListener('change', function() {
+        const form = this.closest('form');
+        const role = this.value;
+        
+        // Reset all checkboxes
+        form.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        
+        // Set checkboxes based on role
+        if (role === 'admin') {
+            form.querySelector('input[name="can_add_incidents"]').checked = true;
+            form.querySelector('input[name="can_view_incidents"]').checked = true;
+            form.querySelector('input[name="can_add_metrics"]').checked = true;
+            form.querySelector('input[name="can_view_metrics"]').checked = true;
+            form.querySelector('input[name="can_export"]').checked = true;
+            form.querySelector('input[name="is_admin"]').checked = true;
+        } else if (role === 'incident_view') {
+            form.querySelector('input[name="can_add_incidents"]').checked = true;
+            form.querySelector('input[name="can_view_incidents"]').checked = true;
+        } else if (role === 'metrics') {
+            form.querySelector('input[name="can_add_metrics"]').checked = true;
+            form.querySelector('input[name="can_view_metrics"]').checked = true;
+            form.querySelector('input[name="can_export"]').checked = true;
+        } else {  // incident_only
+            form.querySelector('input[name="can_add_incidents"]').checked = true;
+        }
+    });
+});
+</script>
+{% endblock %}

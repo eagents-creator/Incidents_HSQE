@@ -1,0 +1,69 @@
+<!-- View Incident Modal Template -->
+<div class="modal fade" id="viewIncidentModal{{ incident.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ get_text('incident_details', current_user.language) }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>{{ get_text('category', current_user.language) }}:</strong> 
+                        {{ get_text(incident.category.lower(), current_user.language) }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>{{ get_text('subcategory', current_user.language) }}:</strong> 
+                        {{ incident.subcategory }}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <strong>{{ get_text('description', current_user.language) }}:</strong>
+                        <p>{{ incident.description }}</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>{{ get_text('location', current_user.language) }}:</strong> 
+                        {{ incident.location }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>{{ get_text('severity', current_user.language) }}:</strong> 
+                        {{ get_text(incident.severity.lower(), current_user.language) }}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <strong>{{ get_text('immediate_actions', current_user.language) }}:</strong>
+                        <p>{{ incident.immediate_actions or get_text('no_actions', current_user.language) }}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>{{ get_text('reported_by', current_user.language) }}:</strong> 
+                        {{ incident.reporter.username }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>{{ get_text('date', current_user.language) }}:</strong> 
+                        {{ incident.date.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    {{ get_text('close', current_user.language) }}
+                </button>
+                {% if incident.status == 'Open' %}
+                <form method="POST" action="{{ url_for('main.update_incident', id=incident.id) }}" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="status" value="Closed">
+                    <button type="submit" class="btn btn-success">
+                        {{ get_text('mark_as_closed', current_user.language) }}
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

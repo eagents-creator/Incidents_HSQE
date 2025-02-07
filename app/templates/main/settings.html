@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}{{ get_text('user_settings', current_user.language) }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        {% if show_user_management %}
+        <div class="col-12 mb-4">
+            <a href="{{ url_for('main.users') }}" class="btn btn-primary">
+                <i class="fas fa-users"></i> {{ get_text('manage_users', current_user.language) }}
+            </a>
+        </div>
+        {% endif %}
+        <div class="col-12 col-md-8 col-lg-6 mx-auto">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h4 class="mb-0">{{ get_text('user_settings', current_user.language) }}</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Language Settings -->
+                    <form method="POST" action="{{ url_for('main.update_language') }}" class="mb-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <h5 class="mb-3">{{ get_text('language_preference', current_user.language) }}</h5>
+                        <div class="mb-3">
+                            <select class="form-select" name="language" id="language">
+                                <option value="en" {% if current_user.language == 'en' %}selected{% endif %}>
+                                    {{ get_text('english', current_user.language) }}
+                                </option>
+                                <option value="fi" {% if current_user.language == 'fi' %}selected{% endif %}>
+                                    {{ get_text('finnish', current_user.language) }}
+                                </option>
+                                <option value="sv" {% if current_user.language == 'sv' %}selected{% endif %}>
+                                    {{ get_text('swedish', current_user.language) }}
+                                </option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            {{ get_text('save', current_user.language) }}
+                        </button>
+                    </form>
+
+                    <hr>
+
+                    <!-- Profile Settings -->
+                    <form method="POST" action="{{ url_for('main.update_profile') }}" class="mb-4">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <h5 class="mb-3">{{ get_text('profile_settings', current_user.language) }}</h5>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">{{ get_text('email', current_user.language) }}</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ current_user.email }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="username" class="form-label">{{ get_text('username', current_user.language) }}</label>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   value="{{ current_user.username }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            {{ get_text('update_profile', current_user.language) }}
+                        </button>
+                    </form>
+
+                    <hr>
+
+                    <!-- Change Password -->
+                    <form method="POST" action="{{ url_for('main.change_password') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <h5 class="mb-3">{{ get_text('change_password', current_user.language) }}</h5>
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">
+                                {{ get_text('current_password', current_user.language) }}
+                            </label>
+                            <input type="password" class="form-control" id="current_password" 
+                                   name="current_password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">
+                                {{ get_text('new_password', current_user.language) }}
+                            </label>
+                            <input type="password" class="form-control" id="new_password" 
+                                   name="new_password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">
+                                {{ get_text('confirm_password', current_user.language) }}
+                            </label>
+                            <input type="password" class="form-control" id="confirm_password" 
+                                   name="confirm_password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            {{ get_text('change_password', current_user.language) }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('language').addEventListener('change', function() {
+    this.form.submit();
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+@media (max-width: 768px) {
+    .card {
+        border-radius: 0;
+        margin: -1rem;
+    }
+    .container-fluid {
+        padding: 0;
+    }
+}
+</style>
+{% endblock %}

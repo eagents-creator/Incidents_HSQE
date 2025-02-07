@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}{{ get_text('reports', current_user.language) }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <h2>{{ get_text('reports', current_user.language) }}</h2>
+    </div>
+</div>
+
+<!-- Incidents Overview -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{{ get_text('incidents_by_month', current_user.language) }}</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="incidentsMonthChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{{ get_text('incidents_by_category', current_user.language) }}</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="incidentsCategoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions Overview -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{{ get_text('actions_by_status', current_user.language) }}</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="actionsStatusChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{{ get_text('actions_by_category', current_user.language) }}</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="actionsCategoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Response Times and Target Compliance -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{{ get_text('average_response_times', current_user.language) }}</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="responseTimesChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{{ get_text('target_compliance', current_user.language) }}</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="targetComplianceChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Parse chart data
+    var chartData = {{ chart_data|tojson|safe }};
+    var incidentsByCategory = {{ incidents_by_category|tojson|safe }};
+    var openActionsByCategory = {{ open_actions_by_category|tojson|safe }};
+    var completedActionsByCategory = {{ completed_actions_by_category|tojson|safe }};
+    var responseTimes = {{ response_times|tojson|safe }};
+    var targetCompliance = {{ target_compliance|tojson|safe }};
+
+    // Incidents by Month Chart
+    new Chart(document.getElementById('incidentsMonthChart').getContext('2d'), {
+        type: 'line',
+        data: {
+            labels: chartData.incidents.months,
+            datasets: [{
+                label: '{{ get_text("incidents", current_user.language) }}',
+                data: chartData.incidents.counts,
+                borderColor: '#007bff',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Incidents by Category Chart
+    new Chart(document.getElementById('incidentsCategoryChart').getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: Object.keys(incidentsByCategory),
+            datasets: [{
+                data: Object.values(incidentsByCategory),
+                backgroundColor: ['#28a745', '#dc3545', '#17a2b8', '#ffc107']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Actions by Status Chart
+    new Chart(document.getElementById('actionsStatusChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: chartData.actions.statuses,
+            datasets: [{
+                data: chartData.actions.counts,
+                backgroundColor: ['#dc3545', '#ffc107', '#28a745']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Actions by Category Chart
+    new Chart(document.getElementById('actionsCategoryChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(openActionsByCategory),
+            datasets: [
+                {
+                    label: '{{ get_text("open", current_user.language) }}',
+                    data: Object.values(openActionsByCategory),
+                    backgroundColor: '#ffc107'
+                },
+                {
+                    label: '{{ get_text("completed", current_user.language) }}',
+                    data: Object.values(completedActionsByCategory),
+                    backgroundColor: '#28a745'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    stacked: true
+                },
+                x: {
+                    stacked: true
+                }
+            }
+        }
+    });
+
+    // Response Times Chart
+    new Chart(document.getElementById('responseTimesChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(responseTimes),
+            datasets: [{
+                label: '{{ get_text("days", current_user.language) }}',
+                data: Object.values(responseTimes),
+                backgroundColor: '#007bff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Target Compliance Chart
+    new Chart(document.getElementById('targetComplianceChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: Object.keys(targetCompliance),
+            datasets: [{
+                label: '{{ get_text("compliance_percentage", current_user.language) }}',
+                data: Object.values(targetCompliance),
+                backgroundColor: '#28a745'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card {
+    margin-bottom: 1rem;
+}
+.card-header {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}

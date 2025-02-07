@@ -1,0 +1,158 @@
+<!-- View Metric Modal -->
+<div class="modal fade" id="viewMetricModal{{ metric['id'] }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ get_text('metric_details', current_user.language) }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>{{ get_text('category', current_user.language) }}:</strong> 
+                        {{ get_text(metric['category'].lower(), current_user.language) }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>{{ get_text('type', current_user.language) }}:</strong> 
+                        {{ metric['metric_type'] }}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>{{ get_text('value', current_user.language) }}:</strong> 
+                        {{ "%.2f"|format(metric['value']) }} {{ metric['unit'] }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>{{ get_text('target', current_user.language) }}:</strong> 
+                        {% if metric['target'] %}
+                            {{ "%.2f"|format(metric['target']) }} {{ metric['unit'] }}
+                        {% else %}
+                            {{ get_text('not_set', current_user.language) }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <strong>{{ get_text('notes', current_user.language) }}:</strong>
+                        <p>{{ metric['notes'] or get_text('no_notes', current_user.language) }}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>{{ get_text('date', current_user.language) }}:</strong> 
+                        {{ metric['date'] }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>{{ get_text('created_by', current_user.language) }}:</strong> 
+                        {{ metric['created_by'] }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Metric Modal -->
+<div class="modal fade" id="editMetricModal{{ metric['id'] }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ get_text('edit_metric', current_user.language) }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('main.edit_metric', id=metric['id']) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="category{{ metric['id'] }}" class="form-label">
+                                {{ get_text('category', current_user.language) }}
+                            </label>
+                            <select class="form-select metric-category" id="category{{ metric['id'] }}" name="category" required>
+                                {% for cat in ['Health', 'Safety', 'Quality', 'Environment'] %}
+                                    <option value="{{ cat }}" {{ 'selected' if cat == metric['category'] }}>
+                                        {{ get_text(cat.lower(), current_user.language) }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="metric_type{{ metric['id'] }}" class="form-label">
+                                {{ get_text('metric_type', current_user.language) }}
+                            </label>
+                            <select class="form-select metric-type" id="metric_type{{ metric['id'] }}" name="metric_type" required>
+                                <option value="{{ metric['metric_type'] }}" selected>{{ metric['metric_type'] }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="value{{ metric['id'] }}" class="form-label">
+                                {{ get_text('value', current_user.language) }}
+                            </label>
+                            <input type="number" step="0.01" class="form-control" id="value{{ metric['id'] }}" 
+                                   name="value" value="{{ metric['value'] }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="unit{{ metric['id'] }}" class="form-label">
+                                {{ get_text('unit', current_user.language) }}
+                            </label>
+                            <input type="text" class="form-control" id="unit{{ metric['id'] }}" name="unit" 
+                                   value="{{ metric['unit'] }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="target{{ metric['id'] }}" class="form-label">
+                            {{ get_text('target_optional', current_user.language) }}
+                        </label>
+                        <input type="number" step="0.01" class="form-control" id="target{{ metric['id'] }}" name="target"
+                               value="{{ metric['target'] if metric['target'] }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes{{ metric['id'] }}" class="form-label">
+                            {{ get_text('notes', current_user.language) }}
+                        </label>
+                        <textarea class="form-control" id="notes{{ metric['id'] }}" name="notes" rows="3">{{ metric['notes'] or '' }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        {{ get_text('cancel', current_user.language) }}
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        {{ get_text('save_changes', current_user.language) }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Metric Modal -->
+<div class="modal fade" id="deleteMetricModal{{ metric['id'] }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ get_text('delete_metric', current_user.language) }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>{{ get_text('delete_metric_confirm', current_user.language) }}</p>
+                <p><strong>{{ get_text('category', current_user.language) }}:</strong> {{ get_text(metric['category'].lower(), current_user.language) }}</p>
+                <p><strong>{{ get_text('type', current_user.language) }}:</strong> {{ metric['metric_type'] }}</p>
+                <p><strong>{{ get_text('value', current_user.language) }}:</strong> {{ "%.2f"|format(metric['value']) }} {{ metric['unit'] }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    {{ get_text('cancel', current_user.language) }}
+                </button>
+                <form method="POST" action="{{ url_for('main.delete_metric', id=metric['id']) }}" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">
+                        {{ get_text('delete', current_user.language) }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

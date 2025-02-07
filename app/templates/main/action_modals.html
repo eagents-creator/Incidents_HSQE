@@ -1,0 +1,169 @@
+<!-- Edit Action Modal -->
+<div class="modal fade" id="editActionModal{{ action.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ get_text('edit_action', current_user.language) }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('main.update_action', id=action.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="title{{ action.id }}" class="form-label">{{ get_text('title', current_user.language) }}</label>
+                        <input type="text" class="form-control" id="title{{ action.id }}" 
+                               name="title" value="{{ action.title }}" required>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="type{{ action.id }}" class="form-label">{{ get_text('type', current_user.language) }}</label>
+                            <select class="form-select" id="type{{ action.id }}" name="type" required>
+                                <option value="Corrective" {{ 'selected' if action.type == 'Corrective' }}>
+                                    {{ get_text('corrective', current_user.language) }}
+                                </option>
+                                <option value="Preventive" {{ 'selected' if action.type == 'Preventive' }}>
+                                    {{ get_text('preventive', current_user.language) }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="priority{{ action.id }}" class="form-label">{{ get_text('priority', current_user.language) }}</label>
+                            <select class="form-select" id="priority{{ action.id }}" name="priority" required>
+                                <option value="Low" {{ 'selected' if action.priority == 'Low' }}>
+                                    {{ get_text('low', current_user.language) }}
+                                </option>
+                                <option value="Medium" {{ 'selected' if action.priority == 'Medium' }}>
+                                    {{ get_text('medium', current_user.language) }}
+                                </option>
+                                <option value="High" {{ 'selected' if action.priority == 'High' }}>
+                                    {{ get_text('high', current_user.language) }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description{{ action.id }}" class="form-label">{{ get_text('description', current_user.language) }}</label>
+                        <textarea class="form-control" id="description{{ action.id }}" 
+                                  name="description" rows="4" required>{{ action.description }}</textarea>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="due_date{{ action.id }}" class="form-label">{{ get_text('due_date', current_user.language) }}</label>
+                            <input type="date" class="form-control" id="due_date{{ action.id }}" 
+                                   name="due_date" value="{{ action.due_date.strftime('%Y-%m-%d') }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="status{{ action.id }}" class="form-label">{{ get_text('status', current_user.language) }}</label>
+                            <select class="form-select" id="status{{ action.id }}" name="status" required>
+                                <option value="Open" {{ 'selected' if action.status == 'Open' }}>
+                                    {{ get_text('open', current_user.language) }}
+                                </option>
+                                <option value="In Progress" {{ 'selected' if action.status == 'In Progress' }}>
+                                    {{ get_text('in_progress', current_user.language) }}
+                                </option>
+                                <option value="Completed" {{ 'selected' if action.status == 'Completed' }}>
+                                    {{ get_text('completed', current_user.language) }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        {{ get_text('cancel', current_user.language) }}
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        {{ get_text('save_changes', current_user.language) }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Action Modal -->
+<div class="modal fade" id="deleteActionModal{{ action.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ get_text('delete_action', current_user.language) }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>{{ get_text('delete_action_confirm', current_user.language) }}</p>
+                <p><strong>{{ get_text('title', current_user.language) }}:</strong> {{ action.title }}</p>
+                <p><strong>{{ get_text('type', current_user.language) }}:</strong> {{ get_text(action.type.lower(), current_user.language) }}</p>
+                <p><strong>{{ get_text('priority', current_user.language) }}:</strong> {{ get_text(action.priority.lower(), current_user.language) }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    {{ get_text('cancel', current_user.language) }}
+                </button>
+                <form method="POST" action="{{ url_for('main.delete_action', id=action.id) }}" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">
+                        {{ get_text('delete', current_user.language) }}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Action Modal -->
+<div class="modal fade" id="viewActionModal{{ action.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ get_text('action_details', current_user.language) }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <h4>{{ action.title }}</h4>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>{{ get_text('type', current_user.language) }}:</strong> 
+                        {{ get_text(action.type.lower(), current_user.language) }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>{{ get_text('priority', current_user.language) }}:</strong> 
+                        {{ get_text(action.priority.lower(), current_user.language) }}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <strong>{{ get_text('description', current_user.language) }}:</strong>
+                        <p>{{ action.description }}</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>{{ get_text('due_date', current_user.language) }}:</strong> 
+                        {{ action.due_date.strftime('%Y-%m-%d') }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>{{ get_text('status', current_user.language) }}:</strong> 
+                        {{ get_text(action.status.lower(), current_user.language) }}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>{{ get_text('assignee', current_user.language) }}:</strong> 
+                        {{ action.assignee.username }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>{{ get_text('completion_date', current_user.language) }}:</strong> 
+                        {{ action.completion_date.strftime('%Y-%m-%d') if action.completion_date else get_text('not_completed', current_user.language) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
