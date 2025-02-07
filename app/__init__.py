@@ -18,23 +18,29 @@ def create_app():
     
     # Configure app
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-please-change')
-    db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'hsqe.db'))
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
-    print(f"\nInitializing Flask app...")
-    print(f"Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
-    print(f"Database path: {db_path}")
-    
-    # Set environment-specific settings
+    # Database configuration
     if os.environ.get('FLASK_ENV') == 'production':
+        # Production settings
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+        if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
+            app.config['SQLALCHEMY_DATABASE_URI'] = app.config['SQLALCHEMY_DATABASE_URI'].replace('postgres://', 'postgresql://', 1)
         app.config['DEBUG'] = False
         app.config['TESTING'] = False
         app.config['SESSION_COOKIE_SECURE'] = True
         app.config['REMEMBER_COOKIE_SECURE'] = True
     else:
+        # Development settings
+        db_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'hsqe.db'))
+        app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
         app.config['DEBUG'] = True
         app.config['TESTING'] = True
+    
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    
+    print(f"\nInitializing Flask app...")
+    print(f"Environment: {os.environ.get('FLASK_ENV', 'development')}")
+    print(f"Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
 
     # Initialize extensions
     print("Initializing extensions...")
@@ -68,15 +74,15 @@ def create_app():
     app.register_blueprint(main_blueprint)
     app.register_blueprint(api_bp, url_prefix='/api')
 
-    # Create database tables
+    # Create database tables if needed
     with app.app_context():
-        if not os.path.exists(db_path):
-            print(f"Creating database at {db_path}")
+        try:
             db.create_all()
-            print("Database tables created successfully")
-        else:
-            print(f"Database exists at {db_path}")
-            print(f"File size: {os.path.getsize(db_path)} bytes")
-            print(f"File permissions: {oct(os.stat(db_path).st_mode)[-3:]}")
+            print("Database tables created/verified successfully")
+        except Exception as e:
+            print(f"Error initializing database: {e}")
+            # In production, you might want to handle this more gracefully
+            if os.environ.get('FLASK_ENV') == 'production':
+                raise
 
     return app

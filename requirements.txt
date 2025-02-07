@@ -9,3 +9,9 @@ Werkzeug==3.0.1
 SQLAlchemy==2.0.25
 python-dotenv==1.0.0
 gunicorn==21.2.0
+psycopg2-binary==2.9.9
+alembic==1.14.1
+Jinja2==3.1.5
+itsdangerous==2.2.0
+click==8.1.8
+blinker==1.9.0

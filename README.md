@@ -9,56 +9,70 @@ A Health, Safety, Quality, and Environment (HSQE) management system built with F
 - User Management
 - Role-based Access Control
 
-## Installation
+## Local Development Setup
 
-1. Clone the repository:
+1. Create and activate a virtual environment:
 ```bash
-git clone [your-repository-url]
-cd hsqe_system
-```
-
-2. Create and activate a virtual environment:
-```bash
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate  # On Windows use: venv\Scripts\activate
 ```
 
-3. Install dependencies:
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Set up environment variables (optional):
+3. Initialize the database:
 ```bash
-export FLASK_ENV=development
-export SECRET_KEY=your-secret-key
-```
-
-## Running the Application
-
-1. Initialize the database:
-```bash
+flask db init
+flask db migrate -m "initial migration"
 flask db upgrade
 ```
 
-2. Run the application:
+4. Create admin user:
+```bash
+python create_admin.py
+```
+This will create an admin user with:
+- Username: admin
+- Password: admin
 
-Development:
+5. Add demo data (optional):
+```bash
+python add_demo_data.py
+```
+
+6. Run the development server:
 ```bash
 python run.py
 ```
-The application will be available at `http://localhost:8081`
+The application will be available at `http://localhost:8082`
 
-Production:
-```bash
-gunicorn run:app
-```
-The application will be available at `http://localhost:8000` (default gunicorn port)
+## Deployment to Render
+
+1. Create a new Web Service on Render
+2. Connect your GitHub repository
+3. Configure the following settings:
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `gunicorn wsgi:app`
+   - Environment Variables:
+     ```
+     FLASK_ENV=production
+     SECRET_KEY=your-secret-key-here
+     DATABASE_URL=your-postgres-url  # Render will provide this automatically
+     ```
+
+### Important Notes for Production
+
+1. Change the default SECRET_KEY in production
+2. The application will automatically use PostgreSQL in production
+3. Database migrations will be run automatically
+4. CORS and security settings are automatically configured for production
 
 ## Project Structure
 
 ```
-hsqe_system/
+hsqe_system2/
 ├── app/                    # Application package
 │   ├── static/            # Static files (CSS, JS)
 │   ├── templates/         # HTML templates
@@ -66,19 +80,27 @@ hsqe_system/
 │   ├── auth.py           # Authentication routes
 │   ├── main.py           # Main routes
 │   └── models.py         # Database models
-├── run.py                 # Application entry point
-├── requirements.txt       # Python dependencies
-└── README.md             # This file
+├── migrations/           # Database migrations
+├── wsgi.py              # WSGI entry point
+├── run.py               # Development server script
+├── requirements.txt     # Python dependencies
+├── Procfile            # Render/Heroku deployment config
+└── README.md           # This file
 ```
 
-## Development
+## Development vs Production
 
-- The database file (hsqe.db) is stored in the app directory
-- Flask debug mode is enabled by default in development
-- CORS is enabled for development purposes
+The application uses different configurations based on the environment:
 
-## Security Notes
+### Development
+- SQLite database (hsqe.db in app directory)
+- Debug mode enabled
+- CSRF protection enabled
+- Local development server
 
-- Change the default SECRET_KEY in production
-- Enable secure cookie settings in production
-- Review CORS settings before deployment
+### Production
+- PostgreSQL database (configured via DATABASE_URL)
+- Debug mode disabled
+- Secure cookie settings enabled
+- HTTPS enforced
+- Gunicorn WSGI server
