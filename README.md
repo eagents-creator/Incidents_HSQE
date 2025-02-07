@@ -42,11 +42,18 @@ flask db upgrade
 ```
 
 2. Run the application:
+
+Development:
 ```bash
 python run.py
 ```
-
 The application will be available at `http://localhost:8081`
+
+Production:
+```bash
+gunicorn run:app
+```
+The application will be available at `http://localhost:8000` (default gunicorn port)
 
 ## Project Structure
 
